@@ -1,0 +1,519 @@
+<?php
+include("../config/session.php");
+include("../config/db.php");
+
+$user_id = $_SESSION['user_id'];
+$role = $_SESSION['role'];
+
+// Fetch user profile
+$sql = "SELECT u.*, t.academic_rank, t.qualification, t.date_of_birth, 
+               t.hire_date, t.bio, t.office_location, t.office_hours,
+               (SELECT COUNT(*) FROM overload_requests WHERE teacher_id = t.teacher_id) as total_requests,
+               (SELECT COUNT(*) FROM overload_requests WHERE teacher_id = t.teacher_id AND status = 'approved') as approved_requests,
+               (SELECT SUM(p.amount) FROM payments p 
+                JOIN overload_requests o ON p.request_id = o.request_id 
+                WHERE o.teacher_id = t.teacher_id) as total_earnings
+        FROM users u 
+        LEFT JOIN teachers t ON u.user_id = t.user_id
+        WHERE u.user_id = ?";
+
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+
+// Update profile
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
+    $full_name = $_POST['full_name'];
+    $email = $_POST['email'];
+    $phone = $_POST['phone'];
+    
+    $update_sql = "UPDATE users SET full_name = ?, email = ?, phone = ? WHERE user_id = ?";
+    $update_stmt = $conn->prepare($update_sql);
+    $update_stmt->bind_param("sssi", $full_name, $email, $phone, $user_id);
+    
+    if ($update_stmt->execute()) {
+        $success_message = "Profile updated successfully!";
+        // Refresh user data
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+    } else {
+        $error_message = "Error updating profile.";
+    }
+}
+?>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile | Woldiya University</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar (include based on role) -->
+        <?php include("sidebar.php"); ?>
+        
+        <main class="main-content">
+            <div class="page-header">
+                <h2><i class="fas fa-user-circle"></i> My Profile</h2>
+                <div class="header-actions">
+                    <button class="btn-primary" onclick="window.print()">
+                        <i class="fas fa-print"></i> Print Profile
+                    </button>
+                </div>
+            </div>
+            
+            <?php if (isset($success_message)): ?>
+                <div class="notification notification-success">
+                    <?php echo $success_message; ?>
+                </div>
+            <?php endif; ?>
+            
+            <?php if (isset($error_message)): ?>
+                <div class="notification notification-error">
+                    <?php echo $error_message; ?>
+                </div>
+            <?php endif; ?>
+            
+            <div class="profile-container">
+                <!-- Profile Header -->
+                <div class="card profile-header">
+                    <div class="profile-image-section">
+                        <div class="profile-image">
+                            <?php if ($user['profile_image']): ?>
+                                <img src="../assets/images/profiles/<?php echo $user['profile_image']; ?>" 
+                                     alt="<?php echo $user['full_name']; ?>">
+                            <?php else: ?>
+                                <div class="avatar-placeholder">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="profile-basic">
+                            <h1><?php echo $user['full_name']; ?></h1>
+                            <p class="profile-title">
+                                <?php echo $user['academic_rank'] ?: ucfirst($user['role']); ?>
+                            </p>
+                            <p class="profile-department">
+                                <i class="fas fa-building"></i> <?php echo $user['department']; ?>
+                            </p>
+                            <div class="profile-status">
+                                <span class="status-badge status-active">Active</span>
+                                <span>Member since: <?php echo date('F Y', strtotime($user['created_at'])); ?></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-grid">
+                    <!-- Personal Information -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-id-card"></i> Personal Information</h3>
+                            <button class="btn-primary btn-sm" onclick="toggleEdit('personalInfo')">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                        </div>
+                        <div id="personalInfo">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <label><i class="fas fa-envelope"></i> Email</label>
+                                    <p><?php echo $user['email']; ?></p>
+                                </div>
+                                <div class="info-item">
+                                    <label><i class="fas fa-phone"></i> Phone</label>
+                                    <p><?php echo $user['phone']; ?></p>
+                                </div>
+                                <div class="info-item">
+                                    <label><i class="fas fa-user-tag"></i> Role</label>
+                                    <p><?php echo ucfirst(str_replace('_', ' ', $user['role'])); ?></p>
+                                </div>
+                                <div class="info-item">
+                                    <label><i class="fas fa-user-circle"></i> Username</label>
+                                    <p><?php echo $user['username']; ?></p>
+                                </div>
+                                <?php if ($user['date_of_birth']): ?>
+                                <div class="info-item">
+                                    <label><i class="fas fa-birthday-cake"></i> Date of Birth</label>
+                                    <p><?php echo date('F d, Y', strtotime($user['date_of_birth'])); ?></p>
+                                </div>
+                                <?php endif; ?>
+                                <?php if ($user['hire_date']): ?>
+                                <div class="info-item">
+                                    <label><i class="fas fa-calendar-alt"></i> Hire Date</label>
+                                    <p><?php echo date('F d, Y', strtotime($user['hire_date'])); ?></p>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        
+                        <!-- Edit Form (Initially Hidden) -->
+                        <div id="personalInfoEdit" style="display: none;">
+                            <form method="POST">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Full Name</label>
+                                        <input type="text" name="full_name" value="<?php echo $user['full_name']; ?>" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Email</label>
+                                        <input type="email" name="email" value="<?php echo $user['email']; ?>" required>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Phone Number</label>
+                                        <input type="text" name="phone" value="<?php echo $user['phone']; ?>">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Department</label>
+                                        <input type="text" name="department" value="<?php echo $user['department']; ?>" readonly>
+                                    </div>
+                                </div>
+                                <div class="form-actions">
+                                    <button type="submit" name="update_profile" class="btn-success">
+                                        <i class="fas fa-save"></i> Save Changes
+                                    </button>
+                                    <button type="button" class="btn-warning" onclick="toggleEdit('personalInfo')">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Professional Information (For Teachers) -->
+                    <?php if ($role == 'teacher' && $user['academic_rank']): ?>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-graduation-cap"></i> Professional Information</h3>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label><i class="fas fa-award"></i> Academic Rank</label>
+                                <p><?php echo $user['academic_rank']; ?></p>
+                            </div>
+                            <div class="info-item">
+                                <label><i class="fas fa-certificate"></i> Highest Qualification</label>
+                                <p><?php echo $user['qualification']; ?></p>
+                            </div>
+                            <div class="info-item">
+                                <label><i class="fas fa-map-marker-alt"></i> Office Location</label>
+                                <p><?php echo $user['office_location']; ?></p>
+                            </div>
+                            <div class="info-item">
+                                <label><i class="fas fa-clock"></i> Office Hours</label>
+                                <p><?php echo $user['office_hours']; ?></p>
+                            </div>
+                        </div>
+                        <?php if ($user['bio']): ?>
+                        <div class="bio-section">
+                            <label><i class="fas fa-book-open"></i> Biography</label>
+                            <p class="bio-text"><?php echo $user['bio']; ?></p>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <!-- Statistics (For Teachers) -->
+                    <?php if ($role == 'teacher'): ?>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-chart-line"></i> Teaching Statistics</h3>
+                        </div>
+                        <div class="stats-grid small">
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background-color: #00408020; color: #004080;">
+                                    <i class="fas fa-paper-plane"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3><?php echo $user['total_requests'] ?: '0'; ?></h3>
+                                    <p>Total Requests</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background-color: #28a74520; color: #28a745;">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3><?php echo $user['approved_requests'] ?: '0'; ?></h3>
+                                    <p>Approved Requests</p>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon" style="background-color: #ffc10720; color: #ffc107;">
+                                    <i class="fas fa-coins"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <h3><?php echo number_format($user['total_earnings'] ?: 0); ?> ETB</h3>
+                                    <p>Total Earnings</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <!-- Account Security -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-shield-alt"></i> Account Security</h3>
+                        </div>
+                        <div class="security-actions">
+                            <button class="btn-primary" onclick="changePassword()">
+                                <i class="fas fa-key"></i> Change Password
+                            </button>
+                            <button class="btn-warning" onclick="viewLoginHistory()">
+                                <i class="fas fa-history"></i> View Login History
+                            </button>
+                            <div class="last-login">
+                                <p><i class="fas fa-sign-in-alt"></i> Last Login: 
+                                    <?php echo $user['last_login'] ? date('F d, Y H:i', strtotime($user['last_login'])) : 'First login'; ?>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="../assets/js/main.js"></script>
+    <script>
+        function toggleEdit(sectionId) {
+            const displaySection = document.getElementById(sectionId);
+            const editSection = document.getElementById(sectionId + 'Edit');
+            
+            if (displaySection.style.display === 'none') {
+                displaySection.style.display = 'block';
+                editSection.style.display = 'none';
+            } else {
+                displaySection.style.display = 'none';
+                editSection.style.display = 'block';
+            }
+        }
+        
+        function changePassword() {
+            const newPassword = prompt('Enter new password:');
+            if (newPassword && newPassword.length >= 6) {
+                const confirmPassword = prompt('Confirm new password:');
+                if (newPassword === confirmPassword) {
+                    // In real system, make AJAX request
+                    fetch('../auth/change_password.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            current_password: prompt('Enter current password:'),
+                            new_password: newPassword
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Password changed successfully!');
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        alert('Error changing password');
+                    });
+                } else {
+                    alert('Passwords do not match!');
+                }
+            } else if (newPassword) {
+                alert('Password must be at least 6 characters long!');
+            }
+        }
+        
+        function viewLoginHistory() {
+            // In real system, this would fetch and display login history
+            alert('Login history feature would display here.\nIn a full implementation, this would show all your login records with IP addresses and timestamps.');
+        }
+    </script>
+    
+    <style>
+        .profile-container {
+            padding: 20px 0;
+        }
+        
+        .profile-header {
+            margin-bottom: 30px;
+        }
+        
+        .profile-image-section {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 5px solid #004080;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #004080 0%, #0066cc 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 4rem;
+        }
+        
+        .profile-basic h1 {
+            margin-bottom: 10px;
+            color: #004080;
+        }
+        
+        .profile-title {
+            font-size: 1.2rem;
+            color: #0066cc;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .profile-department {
+            color: #666;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .profile-status {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .info-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-item label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .info-item p {
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        .bio-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .bio-section label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 10px;
+        }
+        
+        .bio-text {
+            line-height: 1.6;
+            color: #444;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #004080;
+        }
+        
+        .security-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .security-actions button {
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+        }
+        
+        .last-login {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .last-login p {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            color: #555;
+        }
+        
+        .stats-grid.small {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .profile-image-section {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+</html>

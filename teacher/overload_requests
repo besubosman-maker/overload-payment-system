@@ -1,0 +1,80 @@
+<?php
+include("../config/session.php");
+include("../config/db.php");
+
+$user_id = $_SESSION['user_id'];
+
+$result = $conn->query("SELECT teacher_id FROM teachers WHERE user_id=$user_id");
+$teacher = $result->fetch_assoc();
+$teacher_id = $teacher['teacher_id'];
+
+// Fetch courses from database
+$courses_result = $conn->query("SELECT course_id, course_code, course_name FROM courses ORDER BY course_code");
+$courses = [];
+while ($row = $courses_result->fetch_assoc()) {
+    $courses[] = $row;
+}
+
+// If no courses in database, use default courses
+if (empty($courses)) {
+    $courses = [
+        ['course_id' => 1, 'course_code' => 'CS101', 'course_name' => 'Introduction to Computer Science'],
+        ['course_id' => 2, 'course_code' => 'CS201', 'course_name' => 'Data Structures'],
+        ['course_id' => 3, 'course_code' => 'CS301', 'course_name' => 'Algorithms'],
+        ['course_id' => 4, 'course_code' => 'MATH101', 'course_name' => 'Calculus I'],
+        ['course_id' => 5, 'course_code' => 'MATH201', 'course_name' => 'Calculus II'],
+        ['course_id' => 6, 'course_code' => 'PHYS101', 'course_name' => 'General Physics'],
+        ['course_id' => 7, 'course_code' => 'ENG101', 'course_name' => 'English Composition'],
+        ['course_id' => 8, 'course_code' => 'CS401', 'course_name' => 'Database Systems'],
+        ['course_id' => 9, 'course_code' => 'CS402', 'course_name' => 'Software Engineering'],
+        ['course_id' => 10, 'course_code' => 'CS403', 'course_name' => 'Computer Networks'],
+    ];
+}
+
+$success_message = "";
+if (isset($_POST['submit'])) {
+    $course_id  = $_POST['course'];
+    $credit  = $_POST['credit'];
+    $semester = $_POST['semester'];
+    $year    = $_POST['year'];
+    $justification = $_POST['justification'] ?? '';
+
+    // Get course name from selected course_id
+    $selected_course = array_filter($courses, function($c) use ($course_id) {
+        return $c['course_id'] == $course_id;
+    });
+    $selected_course = reset($selected_course);
+    $course_name = $selected_course ? $selected_course['course_name'] : 'Unknown Course';
+
+    // DEBUG: Check if table exists
+    $table_check = $conn->query("SHOW TABLES LIKE 'overload_requests'");
+    if ($table_check->num_rows == 0) {
+        die("ERROR: 'overload_requests' table does not exist. Please create the table first.");
+    }
+
+    // DEBUG: Show the SQL query
+    $sql = "INSERT INTO overload_requests 
+            (teacher_id, course_name, credit_hour, semester, academic_year, justification) 
+            VALUES (?,?,?,?,?,?)";
+    echo "<!-- SQL: $sql -->"; // For debugging
+
+    $stmt = $conn->prepare($sql);
+    
+    // Check if prepare() succeeded
+    if ($stmt === false) {
+        die("Prepare failed: " . $conn->error);
+    }
+    
+    $stmt->bind_param("isisss", $teacher_id, $course_name, $credit, $semester, $year, $justification);
+    
+    if ($stmt->execute()) {
+        $success_message = "Overload submitted successfully!";
+    } else {
+        $success_message = "Error submitting overload: " . $stmt->error;
+    }
+    
+    $stmt->close();
+}
+
+// Rest of your code remains the same...
+?>

@@ -1,0 +1,37 @@
+<?php
+// update_all_sidebars.php
+$folders = ['admin', 'teacher', 'department_head', 'finance'];
+
+foreach ($folders as $folder) {
+    $files = glob("$folder/*.php");
+    
+    foreach ($files as $file) {
+        $content = file_get_contents($file);
+        $filename = basename($file);
+        
+        // Skip if it's already a profile.php
+        if ($filename == 'profile.php') continue;
+        
+        // Check if it has sidebar
+        if (strpos($content, '<aside class="sidebar">') !== false) {
+            // Add profile link before logout if not exists
+            if (strpos($content, 'profile.php') === false) {
+                $pattern = '/(<li><a href="[^"]*logout\.php"[^>]*>.*?<\/li>)/s';
+                $replacement = '<li><a href="profile.php"><i class="fas fa-user-circle"></i> My Profile</a></li>
+                $1';
+                
+                $content = preg_replace($pattern, $replacement, $content, 1);
+                
+                // Update active class
+                $content = str_replace('class="active"', '', $content);
+                $content = preg_replace('/href="' . preg_quote($filename) . '"/', 'href="' . $filename . '" class="active"', $content);
+                
+                file_put_contents($file, $content);
+                echo "Updated: $file<br>";
+            }
+        }
+    }
+}
+
+echo "All sidebars updated!";
+?>

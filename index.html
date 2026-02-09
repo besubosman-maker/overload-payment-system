@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Woldiya University | Overload Payment System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            line-height: 1.6;
+            color: #333;
+            background: #f8fafc;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header with Logo */
+        .header {
+            background: linear-gradient(135deg, #004080 0%, #00264d 100%);
+            color: white;
+            padding: 25px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .logo {
+            height: 90px;
+            width: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .university-info {
+            text-align: center;
+        }
+        
+        .university-info h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        
+        .university-info p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            color: #e0f7ff;
+        }
+        
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            background: linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)), 
+                        url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+        
+        .hero h2 {
+            font-size: 2.8rem;
+            color: #004080;
+            margin-bottom: 25px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            color: #555;
+            max-width: 900px;
+            margin: 0 auto 40px;
+            line-height: 1.8;
+        }
+        
+        /* Login Button */
+        .login-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #004080 0%, #0066cc 100%);
+            color: white;
+            padding: 18px 45px;
+            font-size: 1.3rem;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 700;
+            margin: 15px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 15px rgba(0, 64, 128, 0.3);
+        }
+        
+        .login-button:hover {
+            background: linear-gradient(135deg, #003366 0%, #0055aa 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 64, 128, 0.4);
+        }
+        
+        .login-button i {
+            margin-right: 12px;
+        }
+        
+        /* System Overview Section */
+        .overview {
+            padding: 80px 20px;
+            background: white;
+        }
+        
+        .section-title {
+            text-align: center;
+            color: #004080;
+            margin-bottom: 50px;
+            font-size: 2.2rem;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, #004080, #0066cc);
+            border-radius: 2px;
+        }
+        
+        .overview-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 50px;
+            align-items: center;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .overview-text {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #555;
+        }
+        
+        .overview-text p {
+            margin-bottom: 25px;
+        }
+        
+        .overview-image {
+            text-align: center;
+        }
+        
+        .overview-image img {
+            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .highlight {
+            background: linear-gradient(120deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 5px solid #004080;
+            margin-top: 20px;
+        }
+        
+        .highlight h4 {
+            color: #004080;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 80px 20px;
+            background: #f8fafc;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 35px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 35px 25px;
+            border-radius: 12px;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border-top: 5px solid #004080;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        
+        .feature-card i {
+            font-size: 3rem;
+            color: #004080;
+            margin-bottom: 25px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 20px;
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+        }
+        
+        .feature-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .feature-card p {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        /* How It Works Section */
+        .how-it-works {
+            padding: 80px 20px;
+            background: white;
+        }
+        
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            max-width: 1000px;
+            margin: 0 auto;
+            counter-reset: step-counter;
+        }
+        
+        .step {
+            background: #f8fafc;
+            padding: 30px;
+            border-radius: 10px;
+            position: relative;
+            counter-increment: step-counter;
+            border-left: 4px solid #004080;
+        }
+        
+        .step::before {
+            content: counter(step-counter);
+            position: absolute;
+            top: -20px;
+            left: 20px;
+            background: #004080;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .step h4 {
+            color: #004080;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        /* Footer */
+        .footer {
+            background: linear-gradient(135deg, #00264d 0%, #001a33 100%);
+            color: white;
+            padding: 50px 20px;
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .footer p {
+            margin-bottom: 15px;
+            opacity: 0.9;
+            line-height: 1.6;
+        }
+        
+        .footer-links {
+            margin-top: 25px;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .footer-links a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+        
+        .footer-links a:hover {
+            color: #8bc34a;
+            text-decoration: underline;
+        }
+        
+        .copyright {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .logo {
+                height: 70px;
+            }
+            
+            .hero h2 {
+                font-size: 2.2rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .overview-content {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .login-button {
+                padding: 15px 30px;
+                font-size: 1.1rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .university-info h1 {
+                font-size: 2rem;
+            }
+            
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+            
+            .section-title {
+                font-size: 1.8rem;
+            }
+            
+            .feature-card {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/x-icon" href="image.png">
+</head>
+<body>
+    <!-- Header with Logo -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <img src="image.png" alt="Woldiya University Logo" class="logo">
+                <div class="university-info">
+                    <h1>Woldiya University</h1>
+                    <p>Overload Payment Management System</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h2>Streamline Overload Payment Management</h2>
+            <p>An integrated digital solution for managing teacher overload payments, approvals, and financial tracking at Woldiya University</p>
+            
+            <a href="auth/login.php" class="login-button" id="loginLink">
+                <i class="fas fa-sign-in-alt"></i> Login to System
+            </a>
+            
+            <form action="auth/login.php" method="GET" style="display: inline;">
+                <button type="submit" class="login-button">
+                    <i class="fas fa-arrow-right"></i> Access Login Portal
+                </button>
+            </form>
+            
+            <div style="margin-top: 30px; color: #666; font-size: 1rem;">
+                <p>Click either button to access the secure login page</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- System Overview Section -->
+    <section class="overview">
+        <div class="container">
+            <h2 class="section-title">System Overview</h2>
+            <div class="overview-content">
+                <div class="overview-text">
+                    <p>The Woldiya University Overload Payment Management System is a comprehensive digital platform designed to streamline the entire process of managing teaching overloads across the university.</p>
+                    
+                    <p>This system replaces manual processes with automated workflows, ensuring accuracy, transparency, and efficiency in tracking, approving, and processing overload payments for teaching staff.</p>
+                    
+                    <div class="highlight">
+                        <h4>Key Benefits:</h4>
+                        <p>• Automated workflow from request to payment<br>
+                           • Real-time tracking of request status<br>
+                           • Secure role-based access control<br>
+                           • Comprehensive reporting and analytics<br>
+                           • Reduced administrative workload<br>
+                           • Improved transparency and accountability</p>
+                    </div>
+                </div>
+                <div class="overview-image">
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" 
+                         alt="System Dashboard Overview">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <h2 class="section-title">System Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                    <h3>Teacher Portal</h3>
+                    <p>Submit overload requests, track approval status, view payment history, and manage teaching schedules</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-user-tie"></i>
+                    <h3>Department Head</h3>
+                    <p>Review, approve, or reject overload requests, assign courses, and monitor department workload</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-calculator"></i>
+                    <h3>Finance Officer</h3>
+                    <p>Process payments, generate financial reports, manage payment rates, and ensure compliance</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-user-shield"></i>
+                    <h3>Administrator</h3>
+                    <p>Manage user accounts, configure system settings, monitor system usage, and generate analytics</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            <div class="steps">
+                <div class="step">
+                    <h4>1. Submit Request</h4>
+                    <p>Teachers submit overload teaching requests through their portal with course details and hours</p>
+                </div>
+                <div class="step">
+                    <h4>2. Department Approval</h4>
+                    <p>Department heads review and approve requests based on department needs and budget</p>
+                </div>
+                <div class="step">
+                    <h4>3. Finance Processing</h4>
+                    <p>Finance officers process approved payments based on established payment rates</p>
+                </div>
+                <div class="step">
+                    <h4>4. Payment & Reporting</h4>
+                    <p>Payments are processed and comprehensive reports are generated for all stakeholders</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>Woldiya University - Dedicated to Excellence in Higher Education</p>
+                <p>Overload Payment Management System - Version 2.0</p>
+                
+                <div class="footer-links">
+                    <a href="auth/login.php"><i class="fas fa-sign-in-alt"></i> System Login</a>
+                    <a href="mailto:it-support@woldiyauniversity.edu.et"><i class="fas fa-envelope"></i> IT Support</a>
+                    <a href="tel:+251-XXX-XXXXXX"><i class="fas fa-phone"></i> Contact Us</a>
+                    <a href="#"><i class="fas fa-file-alt"></i> User Guide</a>
+                </div>
+                
+                <div class="copyright">
+                    <p>© 2024 Woldiya University. All rights reserved.</p>
+                    <p>Overload Payment Management System | Developed by University IT Department</p>
+                    <p>Address: Woldiya University, Woldiya, Ethiopia</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Woldiya University Home Page Loaded');
+            
+            // Add current year to copyright
+            const yearSpan = document.createElement('span');
+            yearSpan.textContent = new Date().getFullYear();
+            document.querySelector('.copyright p').innerHTML = 
+                document.querySelector('.copyright p').innerHTML.replace('2024', yearSpan.textContent);
+            
+            // Add smooth scrolling for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    if (targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+            
+            // Add animation to feature cards on scroll
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            // Observe elements for animation
+            document.querySelectorAll('.feature-card, .step').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(20px)';
+                el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                observer.observe(el);
+            });
+            
+            // Check if running on localhost
+            if (window.location.protocol === 'file:') {
+                alert('⚠️ IMPORTANT: Please open this page through a web server\n\nUse: http://localhost/overload-payment-system/\nNot: file:///...');
+            }
+        });
+    </script>
+</body>
+</html>
